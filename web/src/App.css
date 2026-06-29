@@ -1,0 +1,9 @@
+.global-spotlight {
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.4s;
+  background: radial-gradient(400px 400px at var(--sx, 50%) var(--sy, 50%), rgba(54, 211, 255, 0.12), rgba(43, 123, 255, 0.05) 30%, transparent 65%);
+}

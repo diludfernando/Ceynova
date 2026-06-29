@@ -1,0 +1,181 @@
+/* =========================================================
+   MORPH TRANSITION — View Transitions API
+   ========================================================= */
+
+/* ── Global transition defaults ──────────────────────────── */
+::view-transition-group(*) {
+  animation-duration: 0.5s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.15, 1);
+}
+
+/* ── Project Image Morph ─────────────────────────────────── */
+::view-transition-group(project-hero) {
+  animation-duration: 0.6s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.15, 1);
+}
+
+::view-transition-old(project-hero) {
+  animation: morphImageOut 0.6s cubic-bezier(0.4, 0, 0.15, 1) forwards;
+  object-fit: cover;
+  overflow: hidden;
+  border-radius: 22px;
+}
+
+::view-transition-new(project-hero) {
+  animation: morphImageIn 0.6s cubic-bezier(0.4, 0, 0.15, 1) forwards;
+  object-fit: cover;
+  overflow: hidden;
+}
+
+@keyframes morphImageOut {
+  0% {
+    opacity: 1;
+    border-radius: 22px;
+  }
+  100% {
+    opacity: 0;
+    border-radius: 0;
+  }
+}
+
+@keyframes morphImageIn {
+  0% {
+    opacity: 0;
+    border-radius: 22px;
+  }
+  30% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+    border-radius: 0;
+  }
+}
+
+/* ── Project Title Morph ─────────────────────────────────── */
+::view-transition-group(project-title) {
+  animation-duration: 0.55s;
+  animation-timing-function: cubic-bezier(0.4, 0, 0.15, 1);
+}
+
+::view-transition-old(project-title) {
+  animation: titleOut 0.35s cubic-bezier(0.4, 0, 0.15, 1) forwards;
+}
+
+::view-transition-new(project-title) {
+  animation: titleIn 0.55s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+@keyframes titleOut {
+  0% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes titleIn {
+  0% {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  50% {
+    opacity: 0.5;
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Default page cross-fade (for non-morphed elements) ── */
+::view-transition-old(root) {
+  animation: fadeOut 0.3s ease forwards;
+}
+
+::view-transition-new(root) {
+  animation: fadeIn 0.45s ease 0.15s both;
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* =========================================================
+   STAGGERED ENTRY ANIMATIONS (ProjectDetail page)
+   ========================================================= */
+
+/* Base class for elements that will stagger in */
+.morph-stagger {
+  opacity: 0;
+  transform: translateY(32px);
+  animation: staggerIn 0.6s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+.morph-stagger-1 { animation-delay: 0.15s; }
+.morph-stagger-2 { animation-delay: 0.25s; }
+.morph-stagger-3 { animation-delay: 0.35s; }
+.morph-stagger-4 { animation-delay: 0.45s; }
+.morph-stagger-5 { animation-delay: 0.55s; }
+
+@keyframes staggerIn {
+  0% {
+    opacity: 0;
+    transform: translateY(32px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* ── Portfolio exit animation (sibling cards fade out) ──── */
+.pf-project-card.morph-exit {
+  transition: opacity 0.3s ease, transform 0.35s cubic-bezier(0.4, 0, 0.15, 1), filter 0.3s ease;
+  opacity: 0 !important;
+  transform: scale(0.95) translateY(10px) !important;
+  filter: blur(4px);
+  pointer-events: none;
+}
+
+/* The clicked card stays visible (handled by view-transition-name) */
+.pf-project-card.morph-active {
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* ── Breadcrumb + badges slide in ────────────────────────── */
+.morph-slide-in {
+  opacity: 0;
+  transform: translateX(-20px);
+  animation: slideInLeft 0.5s cubic-bezier(0.25, 0.8, 0.25, 1) forwards;
+}
+
+.morph-slide-in-1 { animation-delay: 0.1s; }
+.morph-slide-in-2 { animation-delay: 0.2s; }
+.morph-slide-in-3 { animation-delay: 0.3s; }
+
+@keyframes slideInLeft {
+  0% {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
