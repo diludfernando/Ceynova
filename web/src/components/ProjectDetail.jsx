@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useMorphTransition } from '../context/MorphTransitionContext';
 import { motion, AnimatePresence } from 'framer-motion';
+import HeroBackground from './HeroBackground';
 import './ProjectDetail.css';
 
 const API = 'http://localhost:5000';
@@ -136,7 +137,7 @@ export default function ProjectDetail() {
 
   return (
     <>
-      <div className="aurora"><div className="blob a"></div><div className="blob b"></div><div className="blob c"></div></div>
+      <HeroBackground />
       <div className="grid-overlay"></div>
 
       <header className="nav">
@@ -223,10 +224,10 @@ export default function ProjectDetail() {
                 <div className="pd-gallery-grid">
                   {additionalImages.map((img, index) => (
                     <div key={index} className="pd-gallery-item" onClick={() => setLightboxImg(img)}>
-                      <motion.img 
+                      <motion.img
                         layoutId={`lightbox-${img}`}
-                        src={img.startsWith('data:') ? img : `${API}${img}`} 
-                        alt={`${project.title} screenshot ${index + 1}`} 
+                        src={img.startsWith('data:') ? img : `${API}${img}`}
+                        alt={`${project.title} screenshot ${index + 1}`}
                       />
                     </div>
                   ))}
@@ -294,27 +295,27 @@ export default function ProjectDetail() {
       {/* Lightbox Modal */}
       <AnimatePresence>
         {lightboxImg && (
-          <motion.div 
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            exit={{ opacity: 0 }} 
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
             transition={{ duration: 0.25, ease: 'easeOut' }}
-            className="pd-lightbox" 
+            className="pd-lightbox"
             onClick={() => setLightboxImg(null)}
           >
-            <motion.span 
+            <motion.span
               initial={{ opacity: 0 }}
               animate={{ opacity: 0.6 }}
               exit={{ opacity: 0 }}
-              className="pd-lightbox-close" 
+              className="pd-lightbox-close"
               onClick={(e) => { e.stopPropagation(); setLightboxImg(null); }}
             >&times;</motion.span>
-            <motion.img 
+            <motion.img
               layoutId={`lightbox-${lightboxImg}`}
-              className="pd-lightbox-content" 
-              src={lightboxImg.startsWith('data:') ? lightboxImg : `${API}${lightboxImg}`} 
-              alt="Expanded view" 
-              onClick={(e) => e.stopPropagation()} 
+              className="pd-lightbox-content"
+              src={lightboxImg.startsWith('data:') ? lightboxImg : `${API}${lightboxImg}`}
+              alt="Expanded view"
+              onClick={(e) => e.stopPropagation()}
             />
           </motion.div>
         )}

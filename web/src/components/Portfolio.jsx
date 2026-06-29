@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMorphTransition } from '../context/MorphTransitionContext';
+import HeroBackground from './HeroBackground';
 import './Portfolio.css';
 
 const API = 'http://localhost:5000';
@@ -113,7 +114,7 @@ export default function Portfolio() {
 
   return (
     <>
-      <div className="aurora"><div className="blob a"></div><div className="blob b"></div><div className="blob c"></div></div>
+      <HeroBackground />
       <div className="grid-overlay"></div>
 
       <header className="nav">
