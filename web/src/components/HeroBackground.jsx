@@ -3,33 +3,57 @@ import React, { useEffect, useRef, useCallback } from 'react';
 /**
  * HeroBackground – Animated electric circuit board background
  * 
- * Renders a full-viewport canvas with:
- * - Circuit trace paths with 90° turns (PCB-style)
- * - Energy pulses traveling along traces
- * - Glowing junction nodes
- * - IC chip outlines
- * - Floating particles
- * - Clean negative space in center
+ * Performance-optimized version:
+ * - Static elements (grid, traces, chips) cached to offscreen canvas
+ * - No shadowBlur (simulated with layered draws)
+ * - Throttled to ~30fps
+ * - IntersectionObserver pauses animation when off-screen
+ * - Debounced resize handler
+ * - Reduced DPR cap
  */
 export default function HeroBackground() {
   const canvasRef = useRef(null);
   const animRef = useRef(null);
   const startTimeRef = useRef(null);
   const dataRef = useRef(null);
+  const staticCanvasRef = useRef(null);
+  const isVisibleRef = useRef(true);
+  const lastFrameTimeRef = useRef(0);
+
+  // Target ~30fps for a background animation (33ms between frames)
+  const FRAME_INTERVAL = 33;
 
   const init = useCallback(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+    const ctx = canvas.getContext('2d', { alpha: false });
     if (!ctx) return;
 
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
-    let dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // ── IntersectionObserver: pause when off-screen ──
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        isVisibleRef.current = entry.isIntersecting;
+        if (entry.isIntersecting && !animRef.current) {
+          animRef.current = requestAnimationFrame(render);
+        }
+      },
+      { threshold: 0 }
+    );
+    observer.observe(canvas);
+
+    // Cap DPR at 1.5 to save fill-rate
+    let dpr = Math.min(window.devicePixelRatio || 1, 1.5);
     let w, h;
 
+    // Offscreen canvas for static elements
+    let staticCanvas = document.createElement('canvas');
+    let staticCtx = staticCanvas.getContext('2d');
+    staticCanvasRef.current = staticCanvas;
+
     const resize = () => {
-      dpr = Math.min(window.devicePixelRatio || 1, 2);
+      dpr = Math.min(window.devicePixelRatio || 1, 1.5);
       w = window.innerWidth;
       h = window.innerHeight;
       canvas.width = w * dpr;
@@ -37,6 +61,11 @@ export default function HeroBackground() {
       canvas.style.width = w + 'px';
       canvas.style.height = h + 'px';
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+      // Size offscreen canvas to match
+      staticCanvas.width = w * dpr;
+      staticCanvas.height = h * dpr;
+      staticCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };
     resize();
 
@@ -235,8 +264,8 @@ export default function HeroBackground() {
       return chips;
     };
 
-    // ───── PARTICLES ─────
-    const PARTICLE_COUNT = 30;
+    // ───── PARTICLES (reduced count) ─────
+    const PARTICLE_COUNT = 20;
     const generateParticles = () => {
       const particles = [];
       for (let i = 0; i < PARTICLE_COUNT; i++) {
@@ -262,47 +291,156 @@ export default function HeroBackground() {
     };
     buildData();
 
+    // ───── RENDER STATIC LAYER (cached to offscreen canvas) ─────
+    // Grid, traces, and chips don't animate — render them once
+    const renderStaticLayer = () => {
+      const data = dataRef.current;
+      if (!data) return;
+
+      staticCtx.clearRect(0, 0, w, h);
+
+      // Background fill
+      staticCtx.fillStyle = '#03070f';
+      staticCtx.fillRect(0, 0, w, h);
+
+      // Subtle grid pattern (like PCB substrate) — batched into a single path
+      staticCtx.beginPath();
+      staticCtx.strokeStyle = 'rgba(43, 123, 255, 0.025)';
+      staticCtx.lineWidth = 0.5;
+      const gridSize = 40;
+      for (let x = 0; x <= w; x += gridSize) {
+        staticCtx.moveTo(x, 0);
+        staticCtx.lineTo(x, h);
+      }
+      for (let y = 0; y <= h; y += gridSize) {
+        staticCtx.moveTo(0, y);
+        staticCtx.lineTo(w, y);
+      }
+      staticCtx.stroke();
+
+      // IC chips (static — no shadowBlur)
+      data.chips.forEach((chip) => {
+        staticCtx.save();
+        staticCtx.translate(chip.x, chip.y);
+        staticCtx.rotate(chip.rotation);
+
+        const a = chip.alpha * 0.85;
+
+        // Chip body
+        staticCtx.strokeStyle = `rgba(43, 123, 255, ${(a * 0.6).toFixed(3)})`;
+        staticCtx.lineWidth = 0.8;
+        staticCtx.strokeRect(-chip.w / 2, -chip.h / 2, chip.w, chip.h);
+
+        // Subtle fill
+        staticCtx.fillStyle = `rgba(10, 20, 50, ${(a * 0.5).toFixed(3)})`;
+        staticCtx.fillRect(-chip.w / 2, -chip.h / 2, chip.w, chip.h);
+
+        // Pins on top and bottom — batched into one path
+        const pinSpacing = chip.w / (chip.pins + 1);
+        staticCtx.beginPath();
+        staticCtx.strokeStyle = `rgba(54, 211, 255, ${(a * 0.5).toFixed(3)})`;
+        staticCtx.lineWidth = 0.6;
+
+        for (let p = 1; p <= chip.pins; p++) {
+          const px = -chip.w / 2 + pinSpacing * p;
+          // Top pins
+          staticCtx.moveTo(px, -chip.h / 2);
+          staticCtx.lineTo(px, -chip.h / 2 - 6);
+          // Bottom pins
+          staticCtx.moveTo(px, chip.h / 2);
+          staticCtx.lineTo(px, chip.h / 2 + 6);
+        }
+        staticCtx.stroke();
+
+        // Notch indicator
+        staticCtx.beginPath();
+        staticCtx.arc(-chip.w / 2 + 5, 0, 2, 0, Math.PI * 2);
+        staticCtx.strokeStyle = `rgba(54, 211, 255, ${(a * 0.4).toFixed(3)})`;
+        staticCtx.stroke();
+
+        staticCtx.restore();
+      });
+
+      // Circuit traces (base lines — static, no shadow)
+      data.circuits.forEach((circuit) => {
+        const { points, width, alpha, colorSet } = circuit;
+        if (points.length < 2) return;
+
+        // Draw base trace line
+        staticCtx.beginPath();
+        staticCtx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          staticCtx.lineTo(points[i].x, points[i].y);
+        }
+
+        const traceColor = colorSet.trace.replace('A', (alpha * 0.35).toFixed(3));
+        staticCtx.strokeStyle = traceColor;
+        staticCtx.lineWidth = width;
+        staticCtx.lineCap = 'round';
+        staticCtx.lineJoin = 'round';
+        staticCtx.stroke();
+
+        // Simulated glow: wider line with lower alpha (NO shadowBlur)
+        staticCtx.beginPath();
+        staticCtx.moveTo(points[0].x, points[0].y);
+        for (let i = 1; i < points.length; i++) {
+          staticCtx.lineTo(points[i].x, points[i].y);
+        }
+        staticCtx.strokeStyle = colorSet.glow.replace('A', (alpha * 0.08).toFixed(3));
+        staticCtx.lineWidth = width + 5;
+        staticCtx.stroke();
+      });
+
+      // Pre-render atmospheric glow orbs (static base positions)
+      const orbs = [
+        { x: w * 0.1, y: h * 0.18, r: Math.min(w, h) * 0.18, color: [10, 50, 180], a: 0.06 },
+        { x: w * 0.9, y: h * 0.8, r: Math.min(w, h) * 0.2, color: [20, 150, 220], a: 0.05 },
+        { x: w * 0.12, y: h * 0.85, r: Math.min(w, h) * 0.15, color: [70, 40, 200], a: 0.05 },
+        { x: w * 0.85, y: h * 0.12, r: Math.min(w, h) * 0.14, color: [40, 100, 230], a: 0.04 },
+      ];
+
+      orbs.forEach((orb) => {
+        const grad = staticCtx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.r);
+        const [r, g, b] = orb.color;
+        grad.addColorStop(0, `rgba(${r},${g},${b},${orb.a})`);
+        grad.addColorStop(0.5, `rgba(${r},${g},${b},${orb.a * 0.4})`);
+        grad.addColorStop(1, 'rgba(0,0,0,0)');
+        staticCtx.fillStyle = grad;
+        staticCtx.beginPath();
+        staticCtx.arc(orb.x, orb.y, orb.r, 0, Math.PI * 2);
+        staticCtx.fill();
+      });
+
+      // Center vignette
+      const vigGrad = staticCtx.createRadialGradient(
+        w * 0.5, h * 0.45, 0,
+        w * 0.5, h * 0.45, Math.max(w, h) * 0.5
+      );
+      vigGrad.addColorStop(0, 'rgba(3, 7, 15, 0.55)');
+      vigGrad.addColorStop(0.3, 'rgba(3, 7, 15, 0.2)');
+      vigGrad.addColorStop(0.65, 'rgba(3, 7, 15, 0)');
+      vigGrad.addColorStop(1, 'rgba(3, 7, 15, 0)');
+      staticCtx.fillStyle = vigGrad;
+      staticCtx.fillRect(0, 0, w, h);
+    };
+
+    renderStaticLayer();
+
+    // Debounced resize
+    let resizeTimer = null;
     const handleResize = () => {
-      resize();
-      buildData();
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        resize();
+        buildData();
+        renderStaticLayer();
+      }, 200);
     };
     window.addEventListener('resize', handleResize);
 
-    // ───── DRAWING ─────
+    // ───── DYNAMIC DRAWING (per-frame — lightweight) ─────
 
-    // Draw a single circuit trace
-    const drawTrace = (circuit, time) => {
-      const { points, width, alpha, colorSet } = circuit;
-      if (points.length < 2) return;
-
-      ctx.save();
-
-      // Draw base trace line
-      ctx.beginPath();
-      ctx.moveTo(points[0].x, points[0].y);
-      for (let i = 1; i < points.length; i++) {
-        ctx.lineTo(points[i].x, points[i].y);
-      }
-
-      const traceColor = colorSet.trace.replace('A', (alpha * 0.35).toFixed(3));
-      ctx.strokeStyle = traceColor;
-      ctx.lineWidth = width;
-      ctx.lineCap = 'round';
-      ctx.lineJoin = 'round';
-      ctx.stroke();
-
-      // Subtle glow pass
-      ctx.strokeStyle = colorSet.glow.replace('A', (alpha * 0.12).toFixed(3));
-      ctx.lineWidth = width + 4;
-      ctx.shadowColor = colorSet.glow.replace('A', '0.3');
-      ctx.shadowBlur = 8;
-      ctx.stroke();
-      ctx.shadowBlur = 0;
-
-      ctx.restore();
-    };
-
-    // Draw energy pulse traveling along a circuit
+    // Draw energy pulse traveling along a circuit (NO shadowBlur)
     const drawPulse = (circuit, time) => {
       const { points, totalLen, pulseSpeed, pulsePhase, pulseLen, colorSet, alpha, width } = circuit;
       if (points.length < 2 || totalLen < 1) return;
@@ -312,8 +450,6 @@ export default function HeroBackground() {
 
       // Walk the path and find where to draw the pulse
       let walked = 0;
-
-      ctx.save();
 
       for (let i = 1; i < points.length; i++) {
         const dx = points[i].x - points[i - 1].x;
@@ -343,70 +479,64 @@ export default function HeroBackground() {
           const midFrac = ((segStart + segLen * (clipStart + clipEnd) / 2) - pStart) / pulseLen;
           const intensity = Math.sin(midFrac * Math.PI) * Math.min(1, alpha * 2.5);
 
-          if (intensity > 0.01) {
-            // Bright core
-            const grad = ctx.createLinearGradient(sx, sy, ex, ey);
+          if (intensity > 0.02) {
             const col = colorSet.pulse;
-            grad.addColorStop(0, col.replace('A', (intensity * 0.05).toFixed(3)));
-            grad.addColorStop(0.5, col.replace('A', (intensity * 0.9).toFixed(3)));
-            grad.addColorStop(1, col.replace('A', (intensity * 0.05).toFixed(3)));
 
+            // Simulated glow: wider, lower-alpha line (replaces shadowBlur = 30)
             ctx.beginPath();
             ctx.moveTo(sx, sy);
             ctx.lineTo(ex, ey);
-            ctx.strokeStyle = grad;
-            ctx.lineWidth = width + 1.5;
+            ctx.strokeStyle = col.replace('A', (intensity * 0.12).toFixed(3));
+            ctx.lineWidth = width + 8;
             ctx.lineCap = 'round';
-            ctx.shadowColor = col.replace('A', (intensity * 0.7).toFixed(3));
-            ctx.shadowBlur = 16;
             ctx.stroke();
 
-            // Extra glow pass
-            ctx.lineWidth = width + 6;
-            ctx.strokeStyle = col.replace('A', (intensity * 0.15).toFixed(3));
-            ctx.shadowBlur = 30;
+            // Bright core
+            ctx.beginPath();
+            ctx.moveTo(sx, sy);
+            ctx.lineTo(ex, ey);
+            ctx.strokeStyle = col.replace('A', (intensity * 0.8).toFixed(3));
+            ctx.lineWidth = width + 1.5;
+            ctx.lineCap = 'round';
             ctx.stroke();
-            ctx.shadowBlur = 0;
           }
         }
 
         walked += segLen;
       }
-
-      ctx.restore();
     };
 
-    // Draw junction nodes
+    // Draw junction nodes (NO shadowBlur — simulated with layered draws)
     const drawNodes = (nodes, time) => {
+      const sinLookup = Math.sin(time * 1.5);
+      const cosLookup = Math.cos(time * 1.5);
+
       nodes.forEach((node) => {
-        const pulse = 0.6 + 0.4 * Math.sin(time * 1.5 + node.pulsePhase);
+        // Approximate sin with mix of precomputed sin/cos for variety
+        const pulse = 0.6 + 0.4 * (sinLookup * Math.cos(node.pulsePhase) + cosLookup * Math.sin(node.pulsePhase));
         const a = node.alpha * pulse;
 
-        ctx.save();
+        if (a < 0.02) return;
 
         if (node.type === 'square') {
           const s = node.radius * 1.6;
           ctx.fillStyle = `rgba(54, 211, 255, ${(a * 0.5).toFixed(3)})`;
-          ctx.shadowColor = `rgba(54, 211, 255, ${(a * 0.6).toFixed(3)})`;
-          ctx.shadowBlur = 10;
           ctx.fillRect(node.x - s / 2, node.y - s / 2, s, s);
           // Border
           ctx.strokeStyle = `rgba(54, 211, 255, ${(a * 0.7).toFixed(3)})`;
           ctx.lineWidth = 0.5;
           ctx.strokeRect(node.x - s / 2, node.y - s / 2, s, s);
         } else {
-          // Outer glow
+          // Simulated glow: larger circle at low alpha (replaces shadowBlur)
           ctx.beginPath();
-          ctx.arc(node.x, node.y, node.radius + 3, 0, Math.PI * 2);
-          ctx.fillStyle = `rgba(43, 123, 255, ${(a * 0.1).toFixed(3)})`;
+          ctx.arc(node.x, node.y, node.radius + 4, 0, Math.PI * 2);
+          ctx.fillStyle = `rgba(43, 123, 255, ${(a * 0.08).toFixed(3)})`;
           ctx.fill();
 
           // Core dot
           ctx.beginPath();
           ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
           ctx.fillStyle = `rgba(100, 190, 255, ${(a * 0.6).toFixed(3)})`;
-          ctx.shadowColor = `rgba(54, 211, 255, ${(a * 0.8).toFixed(3)})`;
-          ctx.shadowBlur = 8;
           ctx.fill();
 
           // Bright center
@@ -415,61 +545,10 @@ export default function HeroBackground() {
           ctx.fillStyle = `rgba(200, 235, 255, ${(a * 0.8).toFixed(3)})`;
           ctx.fill();
         }
-
-        ctx.shadowBlur = 0;
-        ctx.restore();
       });
     };
 
-    // Draw IC chip outlines
-    const drawChips = (chips, time) => {
-      chips.forEach((chip) => {
-        ctx.save();
-        ctx.translate(chip.x, chip.y);
-        ctx.rotate(chip.rotation);
-
-        const pulse = 0.7 + 0.3 * Math.sin(time * 0.8 + chip.x * 0.01);
-        const a = chip.alpha * pulse;
-
-        // Chip body
-        ctx.strokeStyle = `rgba(43, 123, 255, ${(a * 0.6).toFixed(3)})`;
-        ctx.lineWidth = 0.8;
-        ctx.strokeRect(-chip.w / 2, -chip.h / 2, chip.w, chip.h);
-
-        // Subtle fill
-        ctx.fillStyle = `rgba(10, 20, 50, ${(a * 0.5).toFixed(3)})`;
-        ctx.fillRect(-chip.w / 2, -chip.h / 2, chip.w, chip.h);
-
-        // Pins on top and bottom
-        const pinSpacing = chip.w / (chip.pins + 1);
-        ctx.strokeStyle = `rgba(54, 211, 255, ${(a * 0.5).toFixed(3)})`;
-        ctx.lineWidth = 0.6;
-
-        for (let p = 1; p <= chip.pins; p++) {
-          const px = -chip.w / 2 + pinSpacing * p;
-          // Top pins
-          ctx.beginPath();
-          ctx.moveTo(px, -chip.h / 2);
-          ctx.lineTo(px, -chip.h / 2 - 6);
-          ctx.stroke();
-          // Bottom pins
-          ctx.beginPath();
-          ctx.moveTo(px, chip.h / 2);
-          ctx.lineTo(px, chip.h / 2 + 6);
-          ctx.stroke();
-        }
-
-        // Notch indicator
-        ctx.beginPath();
-        ctx.arc(-chip.w / 2 + 5, 0, 2, 0, Math.PI * 2);
-        ctx.strokeStyle = `rgba(54, 211, 255, ${(a * 0.4).toFixed(3)})`;
-        ctx.stroke();
-
-        ctx.restore();
-      });
-    };
-
-    // Draw floating particles
+    // Draw floating particles (NO shadowBlur)
     const drawParticles = (particles, time) => {
       const t = time * 0.4;
 
@@ -482,148 +561,59 @@ export default function HeroBackground() {
         const centerFade = Math.min(1, Math.max(0, ef - 0.15) / 0.4);
         const finalAlpha = alpha * centerFade;
 
-        if (finalAlpha < 0.01) return;
+        if (finalAlpha < 0.02) return;
 
-        ctx.save();
+        const wrappedX = ((px % w) + w) % w;
+        const wrappedY = ((py % h) + h) % h;
+
+        // Simulated glow: larger circle at low alpha (replaces shadowBlur = 10)
         ctx.beginPath();
-        ctx.arc(
-          ((px % w) + w) % w,
-          ((py % h) + h) % h,
-          p.radius, 0, Math.PI * 2
-        );
+        ctx.arc(wrappedX, wrappedY, p.radius + 4, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(54, 211, 255, ${(finalAlpha * 0.3).toFixed(3)})`;
+        ctx.fill();
+
+        // Core particle
+        ctx.beginPath();
+        ctx.arc(wrappedX, wrappedY, p.radius, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(180, 220, 255, ${finalAlpha.toFixed(3)})`;
-        ctx.shadowColor = `rgba(54, 211, 255, ${finalAlpha.toFixed(3)})`;
-        ctx.shadowBlur = 10;
-        ctx.fill();
-        ctx.restore();
-      });
-    };
-
-    // Draw atmospheric glow orbs near edges
-    const drawGlowOrbs = (time) => {
-      const t = time * 0.4;
-      const orbs = [
-        {
-          x: w * 0.1 + Math.sin(t * 0.3) * w * 0.03,
-          y: h * 0.18 + Math.cos(t * 0.25) * h * 0.04,
-          r: Math.min(w, h) * 0.18,
-          color: [10, 50, 180],
-          a: 0.06,
-        },
-        {
-          x: w * 0.9 + Math.sin(t * 0.2 + 1) * w * 0.03,
-          y: h * 0.8 + Math.cos(t * 0.3 + 2) * h * 0.03,
-          r: Math.min(w, h) * 0.2,
-          color: [20, 150, 220],
-          a: 0.05,
-        },
-        {
-          x: w * 0.12 + Math.sin(t * 0.15 + 3) * w * 0.04,
-          y: h * 0.85 + Math.cos(t * 0.2 + 1.5) * h * 0.03,
-          r: Math.min(w, h) * 0.15,
-          color: [70, 40, 200],
-          a: 0.05,
-        },
-        {
-          x: w * 0.85 + Math.sin(t * 0.25 + 2) * w * 0.03,
-          y: h * 0.12 + Math.cos(t * 0.15 + 4) * h * 0.03,
-          r: Math.min(w, h) * 0.14,
-          color: [40, 100, 230],
-          a: 0.04,
-        },
-      ];
-
-      orbs.forEach((orb) => {
-        const scale = 1 + Math.sin(t * 0.5 + orb.x * 0.001) * 0.1;
-        const grad = ctx.createRadialGradient(orb.x, orb.y, 0, orb.x, orb.y, orb.r * scale);
-        const [r, g, b] = orb.color;
-        grad.addColorStop(0, `rgba(${r},${g},${b},${orb.a})`);
-        grad.addColorStop(0.5, `rgba(${r},${g},${b},${orb.a * 0.4})`);
-        grad.addColorStop(1, 'rgba(0,0,0,0)');
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(orb.x, orb.y, orb.r * scale, 0, Math.PI * 2);
         ctx.fill();
       });
     };
 
-    // Center vignette
-    const drawCenterVignette = () => {
-      const grad = ctx.createRadialGradient(
-        w * 0.5, h * 0.45, 0,
-        w * 0.5, h * 0.45, Math.max(w, h) * 0.5
-      );
-      grad.addColorStop(0, 'rgba(3, 7, 15, 0.55)');
-      grad.addColorStop(0.3, 'rgba(3, 7, 15, 0.2)');
-      grad.addColorStop(0.65, 'rgba(3, 7, 15, 0)');
-      grad.addColorStop(1, 'rgba(3, 7, 15, 0)');
-      ctx.fillStyle = grad;
-      ctx.fillRect(0, 0, w, h);
-    };
-
-    // Subtle grid pattern (like PCB substrate)
-    const drawGrid = () => {
-      ctx.save();
-      ctx.strokeStyle = 'rgba(43, 123, 255, 0.025)';
-      ctx.lineWidth = 0.5;
-
-      const gridSize = 40;
-      for (let x = 0; x <= w; x += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, h);
-        ctx.stroke();
-      }
-      for (let y = 0; y <= h; y += gridSize) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(w, y);
-        ctx.stroke();
-      }
-      ctx.restore();
-    };
-
-    // ───── MAIN RENDER LOOP ─────
+    // ───── MAIN RENDER LOOP (throttled to ~30fps) ─────
     const render = (timestamp) => {
+      if (!isVisibleRef.current) {
+        animRef.current = null;
+        return;
+      }
+
+      // Throttle frame rate
+      const delta = timestamp - lastFrameTimeRef.current;
+      if (delta < FRAME_INTERVAL) {
+        animRef.current = requestAnimationFrame(render);
+        return;
+      }
+      lastFrameTimeRef.current = timestamp - (delta % FRAME_INTERVAL);
+
       if (!startTimeRef.current) startTimeRef.current = timestamp;
       const elapsed = (timestamp - startTimeRef.current) / 1000;
       const data = dataRef.current;
       if (!data) return;
 
-      ctx.clearRect(0, 0, w, h);
-
-      // Background
-      ctx.fillStyle = '#03070f';
-      ctx.fillRect(0, 0, w, h);
-
-      // Atmospheric glow orbs (back)
-      ctx.globalCompositeOperation = 'screen';
-      drawGlowOrbs(elapsed);
-
-      // Grid pattern
+      // Blit the cached static layer (grid, traces, chips, orbs, vignette)
       ctx.globalCompositeOperation = 'source-over';
-      drawGrid();
+      ctx.drawImage(staticCanvas, 0, 0, w * dpr, h * dpr, 0, 0, w, h);
 
-      // IC chips (behind traces)
-      drawChips(data.chips, elapsed);
-
-      // Circuit traces
+      // Dynamic elements only: pulses, nodes, particles
       ctx.globalCompositeOperation = 'screen';
-      data.circuits.forEach((c) => drawTrace(c, elapsed));
 
       // Energy pulses
       data.circuits.forEach((c) => drawPulse(c, elapsed));
 
       // Junction nodes
-      ctx.globalCompositeOperation = 'screen';
       drawNodes(data.nodes, elapsed);
 
-      // Center vignette
-      ctx.globalCompositeOperation = 'source-over';
-      drawCenterVignette();
-
       // Particles
-      ctx.globalCompositeOperation = 'screen';
       drawParticles(data.particles, elapsed);
 
       // Reset
@@ -636,7 +626,10 @@ export default function HeroBackground() {
 
     return () => {
       window.removeEventListener('resize', handleResize);
+      clearTimeout(resizeTimer);
+      observer.disconnect();
       if (animRef.current) cancelAnimationFrame(animRef.current);
+      animRef.current = null;
     };
   }, []);
 
