@@ -1,6 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Link, useParams, useNavigate } from 'react-router-dom';
 import HeroBackground from './HeroBackground';
+import { 
+  SiReact, SiHtml5, SiTailwindcss, SiJavascript, SiTypescript, 
+  SiNodedotjs, SiMongodb, SiFirebase, 
+  SiFigma, SiPython, SiFlutter, SiGit, SiDocker 
+} from 'react-icons/si';
+import { FaDatabase, FaMobileAlt, FaCode, FaCss3Alt, FaAws } from 'react-icons/fa';
 import './ProjectDetail.css';
 
 const API = 'http://localhost:5000';
@@ -548,127 +554,48 @@ export default function ProjectDetail() {
                 const renderPill = (t, key) => {
                   const name = t.toLowerCase().trim();
                   let color = 'var(--cyan)';
-                  if (name.includes('react') || name.includes('next')) color = '#61dafb';
-                  else if (name.includes('node') || name.includes('express')) color = '#339933';
-                  else if (name.includes('mongo') || name.includes('sql') || name.includes('db') || name.includes('data') || name.includes('firebase')) color = '#47a248';
-                  else if (name.includes('tailwind') || name.includes('css') || name.includes('sass')) color = '#38b2ac';
-                  else if (name.includes('js') || name.includes('javascript') || name.includes('ts') || name.includes('typescript')) color = '#f7df1e';
-                  else if (name.includes('aws') || name.includes('cloud') || name.includes('server')) color = '#ff9900';
-                  else if (name.includes('figma') || name.includes('design') || name.includes('ui') || name.includes('ux')) color = '#f24e1e';
-                  else if (name.includes('html')) color = '#e34f26';
-                  else if (name.includes('python') || name.includes('django') || name.includes('flask') || name.includes('ai')) color = '#3776ab';
-                  else if (name.includes('mobile') || name.includes('ios') || name.includes('android') || name.includes('flutter')) color = '#a4c639';
-                  else if (name.includes('git') || name.includes('docker') || name.includes('devops')) color = '#f14e32';
+                  let type = 'default';
+
+                  if (name.includes('react') || name.includes('next')) { color = '#61dafb'; type = 'react'; }
+                  else if (name.includes('node') || name.includes('express')) { color = '#339933'; type = 'node'; }
+                  else if (name.includes('mongo')) { color = '#47a248'; type = 'mongo'; }
+                  else if (name.includes('firebase')) { color = '#ffca28'; type = 'firebase'; }
+                  else if (name.includes('sql') || name.includes('db') || name.includes('data')) { color = '#47a248'; type = 'db'; }
+                  else if (name.includes('tailwind')) { color = '#06b6d4'; type = 'tailwind'; }
+                  else if (name.includes('css') || name.includes('sass')) { color = '#1572B6'; type = 'css'; }
+                  else if (name.includes('ts') || name.includes('typescript')) { color = '#3178c6'; type = 'ts'; }
+                  else if (name.includes('js') || name.includes('javascript')) { color = '#f7df1e'; type = 'js'; }
+                  else if (name.includes('aws') || name.includes('cloud') || name.includes('server')) { color = '#ff9900'; type = 'aws'; }
+                  else if (name.includes('figma') || name.includes('design') || name.includes('ui') || name.includes('ux')) { color = '#F24E1E'; type = 'figma'; }
+                  else if (name.includes('html')) { color = '#E34F26'; type = 'html'; }
+                  else if (name.includes('python') || name.includes('django') || name.includes('flask') || name.includes('ai')) { color = '#3776AB'; type = 'python'; }
+                  else if (name.includes('flutter')) { color = '#02569B'; type = 'flutter'; }
+                  else if (name.includes('mobile') || name.includes('ios') || name.includes('android')) { color = '#a4c639'; type = 'mobile'; }
+                  else if (name.includes('docker')) { color = '#2496ED'; type = 'docker'; }
+                  else if (name.includes('git') || name.includes('devops')) { color = '#F05032'; type = 'git'; }
 
                   const getSymbol = () => {
-                    if (name.includes('react') || name.includes('next')) {
-                      return (
-                        <svg viewBox="-11.5 -10.23174 23 20.46348" width="30" height="30">
-                          <circle cx="0" cy="0" r="2.05" fill={color} />
-                          <g stroke={color} strokeWidth="1.2" fill="none">
-                            <ellipse rx="11" ry="4.2" />
-                            <ellipse rx="11" ry="4.2" transform="rotate(60)" />
-                            <ellipse rx="11" ry="4.2" transform="rotate(120)" />
-                          </g>
-                        </svg>
-                      );
+                    const props = { size: 26, color: color };
+                    switch (type) {
+                      case 'react': return <SiReact {...props} />;
+                      case 'node': return <SiNodedotjs {...props} />;
+                      case 'mongo': return <SiMongodb {...props} />;
+                      case 'firebase': return <SiFirebase {...props} />;
+                      case 'db': return <FaDatabase {...props} />;
+                      case 'tailwind': return <SiTailwindcss {...props} />;
+                      case 'css': return <FaCss3Alt {...props} />;
+                      case 'ts': return <SiTypescript {...props} />;
+                      case 'js': return <SiJavascript {...props} />;
+                      case 'aws': return <FaAws {...props} />;
+                      case 'figma': return <SiFigma {...props} />;
+                      case 'html': return <SiHtml5 {...props} />;
+                      case 'python': return <SiPython {...props} />;
+                      case 'flutter': return <SiFlutter {...props} />;
+                      case 'mobile': return <FaMobileAlt {...props} />;
+                      case 'docker': return <SiDocker {...props} />;
+                      case 'git': return <SiGit {...props} />;
+                      default: return <FaCode {...props} />;
                     }
-                    if (name.includes('html')) {
-                      return (
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M4 2l1.5 17L12 21l6.5-2L20 2H4z" />
-                          <path d="M8 8h8l-.5 5.5-3.5 1-3.5-1-.25-2.5H12" />
-                        </svg>
-                      );
-                    }
-                    if (name.includes('css') || name.includes('tailwind') || name.includes('sass')) {
-                      return (
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 6c-2.5 0-4.5 1.5-6 4 1.5 2.5 3.5 4 6 4s4.5-1.5 6-4c-1.5-2.5-3.5-4-6-4z" />
-                          <path d="M6 14c-1.5 1.5-2 3-2 4 1.5 0 3-.5 4.5-2" />
-                          <path d="M18 14c1.5 1.5 2 3 2 4-1.5 0-3-.5-4.5-2" />
-                        </svg>
-                      );
-                    }
-                    if (name.includes('js') || name.includes('javascript') || name.includes('ts') || name.includes('typescript')) {
-                      const label = (name.includes('ts') || name.includes('typescript')) ? 'TS' : 'JS';
-                      return (
-                        <svg viewBox="0 0 24 24" width="28" height="28">
-                          <rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke={color} strokeWidth="2" />
-                          <text x="12" y="16.5" fill={color} fontSize="11" fontWeight="bold" textAnchor="middle" fontFamily="sans-serif">{label}</text>
-                        </svg>
-                      );
-                    }
-                    if (name.includes('node') || name.includes('express')) {
-                      return (
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 2L3 7v10l9 5 9-5V7l-9-5z" />
-                          <path d="M12 12v10" />
-                          <path d="M12 12L3 7" />
-                          <path d="M12 12l9-5" />
-                        </svg>
-                      );
-                    }
-                    if (name.includes('mongo') || name.includes('sql') || name.includes('db') || name.includes('data') || name.includes('firebase')) {
-                      return (
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <ellipse cx="12" cy="5" rx="9" ry="3" />
-                          <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3" />
-                          <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
-                        </svg>
-                      );
-                    }
-                    if (name.includes('aws') || name.includes('cloud') || name.includes('server')) {
-                      return (
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z" />
-                        </svg>
-                      );
-                    }
-                    if (name.includes('figma') || name.includes('design') || name.includes('ui') || name.includes('ux')) {
-                      return (
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 19l7-7 3 3-7 7-3-3z" />
-                          <path d="M18 13l-1.5-7.5L2 2l3.5 14.5L13 18l5-5z" />
-                          <path d="M2 2l7.586 7.586" />
-                          <circle cx="11" cy="11" r="2" />
-                        </svg>
-                      );
-                    }
-                    if (name.includes('python') || name.includes('django') || name.includes('flask') || name.includes('ai')) {
-                      return (
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 2c-3.5 0-6 2-6 5v3h6v2H5c-2.5 0-4 1.5-4 4s1.5 4 4 4h2v2c0 3 2.5 5 6 5s6-2 6-5v-3h-6v-2h7c2.5 0 4-1.5 4-4s-1.5-4-4-4h-2V7c0-3-2.5-5-6-5z" />
-                          <circle cx="9" cy="6" r="1" fill={color} />
-                          <circle cx="15" cy="18" r="1" fill={color} />
-                        </svg>
-                      );
-                    }
-                    if (name.includes('mobile') || name.includes('ios') || name.includes('android') || name.includes('flutter') || name.includes('app')) {
-                      return (
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <rect x="5" y="2" width="14" height="20" rx="3" ry="3" />
-                          <line x1="12" y1="18" x2="12.01" y2="18" />
-                        </svg>
-                      );
-                    }
-                    if (name.includes('git') || name.includes('docker') || name.includes('devops')) {
-                      return (
-                        <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="6" cy="6" r="3" />
-                          <circle cx="6" cy="18" r="3" />
-                          <line x1="6" y1="9" x2="6" y2="15" />
-                          <circle cx="18" cy="9" r="3" />
-                          <path d="M18 12v3a3 3 0 01-3 3h-3" />
-                        </svg>
-                      );
-                    }
-                    return (
-                      <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polyline points="16 18 22 12 16 6" />
-                        <polyline points="8 6 2 12 8 18" />
-                      </svg>
-                    );
                   };
 
                   return (
@@ -710,7 +637,7 @@ export default function ProjectDetail() {
       )}
 
       {/* ===== CTA ===== */}
-      <section>
+      <section style={{ paddingBottom: '80px' }}>
         <div className="wrap">
           <div className="cta-band">
             <div className="glow"></div>
@@ -727,47 +654,6 @@ export default function ProjectDetail() {
         </div>
       </section>
 
-      {/* ===== PREV / NEXT NAV ===== */}
-      {(prevProject || nextProject) && (
-        <section style={{ paddingTop: 60 }}>
-          <div className="pd-project-nav">
-            {prevProject ? (
-              <Link to={`/portfolio/${prevProject._id}`} className="pd-nav-card prev">
-                <div className="pd-nav-label">
-                  <svg viewBox="0 0 24 24"><path d="M19 12H5M12 5l-7 7 7 7" /></svg>
-                  Previous Project
-                </div>
-                <div className="pd-nav-title">{prevProject.title}</div>
-              </Link>
-            ) : <div />}
-            {nextProject ? (
-              <Link to={`/portfolio/${nextProject._id}`} className="pd-nav-card next">
-                <div className="pd-nav-label">
-                  Next Project
-                  <svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
-                </div>
-                <div className="pd-nav-title">{nextProject.title}</div>
-              </Link>
-            ) : <div />}
-          </div>
-        </section>
-      )}
-
-      {/* ===== FOOTER ===== */}
-      <footer className="site">
-        <div className="wrap foot-in">
-          <Link to="/"><img src="/logo-white.png" alt="Ceynova Digital Solutions" /></Link>
-          <p>© <span>{year}</span> Ceynova Digital Solutions. All rights reserved.</p>
-          <div className="fsoc">
-            <a href="https://www.instagram.com/ceynova_digital" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
-              <svg viewBox="0 0 24 24"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 1.17.05 1.8.25 2.23.41.56.22.96.48 1.38.9.42.42.68.82.9 1.38.16.42.36 1.06.41 2.23.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.05 1.17-.25 1.8-.41 2.23-.22.56-.48.96-.9 1.38-.42.42-.82.68-1.38.9-.42.16-1.06.36-2.23.41-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-1.17-.05-1.8-.25-2.23-.41a3.7 3.7 0 01-1.38-.9 3.7 3.7 0 01-.9-1.38c-.16-.42-.36-1.06-.41-2.23-.06-1.27-.07-1.65-.07-4.85s.01-3.58.07-4.85c.05-1.17.25-1.8.41-2.23.22-.56.48-.96.9-1.38.42-.42.82-.68 1.38-.9.42-.16 1.06-.36 2.23-.41C8.42 2.17 8.8 2.16 12 2.16zm0 4.38a5.3 5.3 0 100 10.6 5.3 5.3 0 000-10.6zm0 1.62a3.68 3.68 0 110 7.36 3.68 3.68 0 010-7.36zm5.5-1.18a1.24 1.24 0 110 2.48 1.24 1.24 0 010-2.48z" fill="#fff" /></svg>
-            </a>
-            <a href="https://www.facebook.com/share/1Ej6yHwqNx/?mibextid=wwXIfr" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
-              <svg viewBox="0 0 24 24"><path d="M22 12a10 10 0 10-11.56 9.88v-6.99H7.9V12h2.54V9.8c0-2.5 1.49-3.89 3.78-3.89 1.09 0 2.24.2 2.24.2v2.46h-1.26c-1.24 0-1.63.77-1.63 1.56V12h2.78l-.44 2.89h-2.34v6.99A10 10 0 0022 12z" fill="#fff" /></svg>
-            </a>
-          </div>
-        </div>
-      </footer>
 
       {/* ===== LIGHTBOX ===== */}
       <div className={`pd-lightbox ${lightboxOpen ? 'open' : ''}`} onClick={() => setLightboxOpen(false)}>

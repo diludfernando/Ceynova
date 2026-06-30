@@ -526,8 +526,11 @@ header.nav {
   overflow: hidden;
   padding: 56px 48px;
   text-align: center;
-  background: linear-gradient(135deg, #0c1c3f, #06112a);
-  border: 1px solid var(--line-2)
+  background: linear-gradient(135deg, rgba(12, 28, 63, 0.4), rgba(6, 17, 42, 0.4));
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
 }
 
 .cta-band::before {
