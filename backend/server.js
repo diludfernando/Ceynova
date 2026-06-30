@@ -73,6 +73,18 @@ app.use('/api/projects', projectRoutes);
 app.use('/api/teammates', teammateRoutes);
 
 // --- Health check ---
+app.all('/', (req, res) => {
+  res.json({
+    status: 'success',
+    message: '🎉 Welcome to Ceynova Digital Solutions API! Your backend is live and working.',
+    endpoints: {
+      health: '/api/health',
+      projects: '/api/projects',
+      teammates: '/api/teammates'
+    }
+  });
+});
+
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'ok',
