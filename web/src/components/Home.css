@@ -1382,9 +1382,9 @@ footer.site {
 }
 
 .foot-brand img {
-  height: 120px;
+  height: 90px;
   width: auto;
-  margin: -22px 0 -6px -14px;
+  margin: -10px 0 5px -10px;
   filter: drop-shadow(0 0 20px rgba(54, 211, 255, .3))
 }
 

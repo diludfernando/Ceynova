@@ -586,7 +586,7 @@ export default function Home() {
         <div className="wrap">
           <div className="foot-grid">
             <div className="foot-brand">
-              <img src="logo-white.png" alt="Ceynova Digital Solutions" />
+              <img src="mark-white.png" alt="Ceynova Digital Solutions" />
               <p>Helping businesses grow through creative, modern, and reliable digital solutions. Innovative solutions, real results.</p>
             </div>
             <div className="foot-col">
