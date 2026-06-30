@@ -8,7 +8,7 @@ const API = 'http://localhost:5000';
 const FALLBACK_TEAMMATES = [
   {
     name: "Dilud Fernando",
-    role: "Co-Founder & Lead Developer",
+    role: "CEO & Co-Founder & Lead Developer",
     bio: "Passionate about building scalable web applications, optimizing performance, and crafting high-impact digital solutions.",
     skills: ["Full-Stack", "Cloud Architecture", "React", "Node.js"],
     socials: {
