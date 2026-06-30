@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useMorphTransition } from '../context/MorphTransitionContext';
 import HeroBackground from './HeroBackground';
@@ -7,13 +7,12 @@ import './Portfolio.css';
 const API = 'http://localhost:5000';
 
 export default function Portfolio() {
+  const navigate = useNavigate();
+  const { navigateWithTransition } = useMorphTransition();
+  const [activeTransitionId, setActiveTransitionId] = useState(null);
   const [year] = useState(new Date().getFullYear());
   const [filter, setFilter] = useState('all');
   const [menuOpen, setMenuOpen] = useState(false);
-  const [exitingId, setExitingId] = useState(null);
-
-  const navigate = useNavigate();
-  const { navigateWithTransition } = useMorphTransition();
 
   const toggleMenu = () => setMenuOpen(!menuOpen);
   const closeMenu = () => setMenuOpen(false);
@@ -82,36 +81,6 @@ export default function Portfolio() {
 
   const filteredProjects = filter === 'all' ? projects : projects.filter(p => matchesCategory(p, filter));
 
-  const handleCardClick = useCallback((e, project) => {
-    e.preventDefault();
-
-    const imgSrc = project.images && project.images.length > 0 ? (project.images[0].startsWith('data:') ? project.images[0] : `${API}${project.images[0]}`) : '/placeholder.jpg';
-
-    // Mark exiting sibling cards
-    setExitingId(project._id);
-
-    // Assign view-transition-name to the clicked card's image dynamically
-    const clickedCard = e.currentTarget;
-    const cardImg = clickedCard.querySelector('img');
-    const cardTitle = clickedCard.querySelector('h3');
-
-    if (cardImg) {
-      cardImg.style.viewTransitionName = 'project-hero';
-    }
-    if (cardTitle) {
-      cardTitle.style.viewTransitionName = 'project-title';
-    }
-
-    // Small delay to let exit animations start, then trigger view transition
-    requestAnimationFrame(() => {
-      navigateWithTransition(navigate, `/portfolio/${project._id}`, {
-        id: project._id,
-        imgSrc,
-        title: project.title,
-      });
-    });
-  }, [navigate, navigateWithTransition]);
-
   return (
     <>
       <HeroBackground />
@@ -165,21 +134,34 @@ export default function Portfolio() {
             {filteredProjects.map((p, i) => (
               <a
                 key={p._id}
-                className={`pf-project-card${exitingId && exitingId !== p._id ? ' morph-exit' : ''}${exitingId === p._id ? ' morph-active' : ''}`}
                 href={`/portfolio/${p._id}`}
-                onClick={(e) => handleCardClick(e, p)}
-                style={{ animationDelay: `${i * 0.05}s` }}
-                data-project-id={p._id}
+                className="pf-project-link"
+                onClick={(e) => {
+                  e.preventDefault();
+                  setActiveTransitionId(p._id);
+                  // Allow React a tick to apply the style before starting transition
+                  setTimeout(() => {
+                    navigateWithTransition(navigate, `/portfolio/${p._id}`, p);
+                  }, 20);
+                }}
               >
-                <img src={p.images && p.images.length > 0 ? (p.images[0].startsWith('data:') ? p.images[0] : `${API}${p.images[0]}`) : '/placeholder.jpg'} alt={p.title} />
-                <span className="yr">{p.yr}</span>
-                <span className="go"><svg viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8" fill="none" stroke="#fff" strokeWidth="2.2" /></svg></span>
-                <div className="ov">
-                  <span className="cat">{getCategoryLabel(p.cat)}</span>
-                  <h3>{p.title}</h3>
-                  <p className="desc">{p.desc}</p>
-                  <div className="tags">
-                    {p.tags.map(t => <i key={t}>{t}</i>)}
+                <div
+                  className="pf-project-card"
+                  style={{ animationDelay: `${i * 0.05}s` }}
+                >
+                  <img
+                    src={p.images && p.images.length > 0 ? (p.images[0].startsWith('data:') ? p.images[0] : `${API}${p.images[0]}`) : '/placeholder.jpg'}
+                    alt={p.title}
+                    style={activeTransitionId === p._id ? { viewTransitionName: 'project-hero' } : {}}
+                  />
+                  <span className="yr">{p.yr}</span>
+                  <div className="ov">
+                    <span className="cat">{getCategoryLabel(p.cat)}</span>
+                    <h3 style={activeTransitionId === p._id ? { viewTransitionName: 'project-title' } : {}}>{p.title}</h3>
+                    <p className="desc">{p.desc}</p>
+                    <div className="tags">
+                      {p.tags.map(t => <i key={t}>{t}</i>)}
+                    </div>
                   </div>
                 </div>
               </a>

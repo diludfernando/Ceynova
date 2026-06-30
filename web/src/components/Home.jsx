@@ -5,10 +5,65 @@ import './Home.css';
 
 const API = 'http://localhost:5000';
 
+const FALLBACK_TEAMMATES = [
+  {
+    name: "Dilud Fernando",
+    role: "Co-Founder & Lead Developer",
+    bio: "Passionate about building scalable web applications, optimizing performance, and crafting high-impact digital solutions.",
+    skills: ["Full-Stack", "Cloud Architecture", "React", "Node.js"],
+    socials: {
+      github: "https://github.com",
+      linkedin: "https://linkedin.com"
+    },
+    gradient: "linear-gradient(135deg, #2b7bff, #36d3ff)"
+  },
+  {
+    name: "Teammate Two",
+    role: "UI/UX Designer",
+    bio: "Focused on creating intuitive, aesthetic, and user-centric interfaces that make digital interaction a delight.",
+    skills: ["Figma", "User Research", "Wireframing", "Design Systems"],
+    socials: {
+      dribbble: "https://dribbble.com",
+      linkedin: "https://linkedin.com"
+    },
+    gradient: "linear-gradient(135deg, #ff5a6e, #ff2e57)"
+  },
+  {
+    name: "Teammate Three",
+    role: "Marketing Specialist",
+    bio: "Driving growth and visibility through tailored digital marketing strategies, SEO optimization, and brand campaigns.",
+    skills: ["SEO", "Growth Marketing", "Analytics", "Copywriting"],
+    socials: {
+      instagram: "https://instagram.com",
+      linkedin: "https://linkedin.com"
+    },
+    gradient: "linear-gradient(135deg, #6f8bff, #9fd2ff)"
+  }
+];
+
 export default function Home() {
   const [year, setYear] = useState(new Date().getFullYear());
   const heroRef = useRef(null);
   const stageRef = useRef(null);
+  const [activeMember, setActiveMember] = useState(null);
+  const [teammates, setTeammates] = useState(FALLBACK_TEAMMATES);
+
+  useEffect(() => {
+    const fetchTeammates = async () => {
+      try {
+        const res = await fetch(`${API}/api/teammates`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.length > 0) {
+            setTeammates(data);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to fetch teammates", err);
+      }
+    };
+    fetchTeammates();
+  }, []);
 
   useEffect(() => {
     const hero = heroRef.current;
@@ -66,6 +121,8 @@ export default function Home() {
 
     return () => io.disconnect();
   }, []);
+
+
 
   useEffect(() => {
     // card spotlight follow-cursor
@@ -188,13 +245,13 @@ export default function Home() {
             <div>
               <span className="pill"><span className="dot"></span> Innovative Solutions · Real Results</span>
               <h1>
-                <span className="word" style={{ animationDelay: '.05s' }}>We</span>
+                <span className="word" style={{ animationDelay: '.05s' }}>We</span>{' '}
                 <span className="word" style={{ animationDelay: '.15s' }}>build</span><br />
-                <span className="word gw" style={{ animationDelay: '.28s' }}>digital</span>
-                <span className="word gw" style={{ animationDelay: '.4s' }}>solutions</span><br />
-                <span className="word" style={{ animationDelay: '.52s' }}>for</span>
-                <span className="word" style={{ animationDelay: '.6s' }}>your</span>
-                <span className="word" style={{ animationDelay: '.68s' }}>success.</span>
+                <span style={{ whiteSpace: 'nowrap' }}><span className="word gw" style={{ animationDelay: '.28s' }}>Digital</span>{' '}
+                  <span className="word gw" style={{ animationDelay: '.4s' }}>Solutions</span></span><br />
+                <span style={{ whiteSpace: 'nowrap' }}><span className="word" style={{ animationDelay: '.52s' }}>for</span>{' '}
+                  <span className="word" style={{ animationDelay: '.6s' }}>your</span>{' '}
+                  <span className="word" style={{ animationDelay: '.68s' }}>Success.</span></span>
               </h1>
               <p className="lead">Ceynova Digital helps businesses grow through creative, modern, and reliable technology — engineered around your goals.</p>
               <div className="hero-cta">
@@ -246,27 +303,6 @@ export default function Home() {
             <span>WEB &amp; MOBILE APPS<i></i></span><span>UI / UX DESIGN<i></i></span><span>DIGITAL MARKETING<i></i></span><span>AI &amp; AUTOMATION<i></i></span><span>E-COMMERCE<i></i></span><span>IT CONSULTING<i></i></span>
           </div>
         </div>
-
-
-        <section className="blk" id="about">
-          <div className="wrap about-grid">
-            <div className="reveal">
-              <span className="eyebrow">Who We Are</span>
-              <div className="quote-card" style={{ marginTop: '20px' }}>
-                <div className="q">“</div>
-                <p>Ceynova Digital was created with a vision to help businesses grow through creative, modern, and reliable digital solutions.</p>
-                <div className="sig">— The Ceynova Team</div>
-                <div className="halo"></div>
-              </div>
-            </div>
-            <div className="points reveal">
-              <div className="pt"><span className="ic"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.5 2.3 7.1L12 16.6 5.7 21l2.3-7.1-6-4.5h7.6z" /></svg></span><div><h4>Creative by default</h4><p>We design experiences people remember, not templates they scroll past.</p></div></div>
-              <div className="pt"><span className="ic"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg></span><div><h4>Modern &amp; reliable</h4><p>Current tech, clean engineering, and solutions built to last and scale.</p></div></div>
-              <div className="pt"><span className="ic"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 10l7-7 7 7" /></svg></span><div><h4>Growth focused</h4><p>Every decision ties back to one thing — moving your business forward.</p></div></div>
-              <div className="pt"><span className="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3" /><path d="M2 21v-2a5 5 0 015-5h4M16 11l2 2 4-4" /></svg></span><div><h4>A real partnership</h4><p>We invite you to grow with us — your success motivates us to go further.</p></div></div>
-            </div>
-          </div>
-        </section>
 
 
         <section className="blk" id="services">
@@ -371,6 +407,132 @@ export default function Home() {
                 <Link to="/portfolio" className="btn btn-primary">View All Work</Link>
               </div>
             </div>
+          </div>
+        </section>
+
+
+        <section className="blk" id="about">
+          <div className="wrap about-grid">
+            <div className="reveal">
+              <span className="eyebrow">Who We Are</span>
+              <div className="quote-card" style={{ marginTop: '20px' }}>
+                <div className="q">“</div>
+                <p>Ceynova Digital was created with a vision to help businesses grow through creative, modern, and reliable digital solutions.</p>
+                <div className="sig">— The Ceynova Team</div>
+                <div className="halo"></div>
+              </div>
+            </div>
+            <div className="points reveal">
+              <div className="pt"><span className="ic"><svg viewBox="0 0 24 24"><path d="M12 2l2.4 7.4H22l-6 4.5 2.3 7.1L12 16.6 5.7 21l2.3-7.1-6-4.5h7.6z" /></svg></span><div><h4>Creative by default</h4><p>We design experiences people remember, not templates they scroll past.</p></div></div>
+              <div className="pt"><span className="ic"><svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg></span><div><h4>Modern &amp; reliable</h4><p>Current tech, clean engineering, and solutions built to last and scale.</p></div></div>
+              <div className="pt"><span className="ic"><svg viewBox="0 0 24 24"><path d="M12 3v18M5 10l7-7 7 7" /></svg></span><div><h4>Growth focused</h4><p>Every decision ties back to one thing — moving your business forward.</p></div></div>
+              <div className="pt"><span className="ic"><svg viewBox="0 0 24 24"><circle cx="9" cy="7" r="3" /><path d="M2 21v-2a5 5 0 015-5h4M16 11l2 2 4-4" /></svg></span><div><h4>A real partnership</h4><p>We invite you to grow with us — your success motivates us to go further.</p></div></div>
+            </div>
+          </div>
+        </section>
+
+
+        <section className="blk" id="team">
+          <div className="wrap">
+            <div className="sec-head center reveal" style={{ marginBottom: '50px' }}>
+              <span className="eyebrow">Our Teammates</span>
+              <h2>Meet the <span className="grad">brains behind</span> Ceynova</h2>
+              <p>A passionate team of developers, designers, and digital experts working together to scale your business.</p>
+            </div>
+
+            <div className="team-grid">
+              {teammates.map((m, idx) => (
+                <button
+                  key={m._id || idx}
+                  className="team-card-btn"
+                  onClick={() => setActiveMember(idx)}
+                >
+                  <div className="team-card-meta">
+                    <h3>{m.name}</h3>
+                    <span>{m.role}</span>
+                  </div>
+                  <div className="team-card-arrow">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M5 12h14M12 5l7 7-7 7" />
+                    </svg>
+                  </div>
+                </button>
+              ))}
+            </div>
+
+            {activeMember !== null && teammates[activeMember] && (() => {
+              const m = teammates[activeMember];
+              return (
+                <div className="team-modal-overlay" onClick={() => setActiveMember(null)}>
+                  <div className="team-modal-card" onClick={(e) => e.stopPropagation()}>
+                    <button className="team-modal-close" onClick={() => setActiveMember(null)}>
+                      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5">
+                        <path d="M18 6L6 18M6 6l12 12" />
+                      </svg>
+                    </button>
+
+                    <div className="spotlight-header">
+                      <div className={`team-avatar-placeholder ${m.image ? 'has-image' : ''}`}>
+                        {m.image ? (
+                          <img src={m.image} alt={m.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <>
+                            {m.name.split(' ').map(n => n[0]).join('')}
+                            <div className="avatar-ring"></div>
+                          </>
+                        )}
+                      </div>
+                      <div className="spotlight-title">
+                        <h3>{m.name}</h3>
+                        <p className="role">{m.role}</p>
+                      </div>
+                    </div>
+
+                    <p className="bio">"{m.bio}"</p>
+
+                    {m.skills && m.skills.length > 0 && (
+                      <div className="skills-wrap">
+                        {m.skills.map((skill, sIdx) => (
+                          <span key={sIdx} className="skill-tag">{skill}</span>
+                        ))}
+                      </div>
+                    )}
+
+                    {m.socials && (() => {
+                      const formatUrl = (url) => {
+                        if (!url) return '';
+                        if (/^https?:\/\//i.test(url)) return url;
+                        return `https://${url}`;
+                      };
+                      return (
+                        <div className="social-links">
+                          {m.socials.github && (
+                            <a href={formatUrl(m.socials.github)} target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="GitHub">
+                              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2A10 10 0 002 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.9-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.9 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z" /></svg>
+                            </a>
+                          )}
+                          {m.socials.linkedin && (
+                            <a href={formatUrl(m.socials.linkedin)} target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="LinkedIn">
+                              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.779-1.75-1.75s.784-1.75 1.75-1.75 1.75.779 1.75 1.75-.784 1.75-1.75 1.75zm13.5 12.268h-3v-5.604c0-3.368-4-3.113-4 0v5.604h-3v-11h3v1.765c1.396-2.586 7-2.777 7 2.476v6.759z" /></svg>
+                            </a>
+                          )}
+                          {m.socials.instagram && (
+                            <a href={formatUrl(m.socials.instagram)} target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="Instagram">
+                              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849 0 3.205-.012 3.584-.069 4.849-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07-3.204 0-3.584-.012-4.849-.07-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849 0-3.204.013-3.583.07-4.849.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069zM12 0C8.741 0 8.333.014 7.053.072 2.695.272.273 2.69.073 7.051.014 8.333 0 8.741 0 12c0 3.259.014 3.668.072 4.948.2 4.358 2.618 6.78 6.98 6.98 1.281.058 1.689.072 4.948.072 3.259 0 3.668-.014 4.948-.072 4.354-.2 6.782-2.618 6.979-6.98.059-1.28.073-1.689.073-4.948 0-3.259-.014-3.667-.072-4.947-.196-4.354-2.617-6.78-6.979-6.98C15.668.014 15.259 0 12 0zm0 5.838a6.162 6.162 0 100 12.324 6.162 6.162 0 000-12.324zM12 16a4 4 0 110-8 4 4 0 010 8zm6.406-11.845a1.44 1.44 0 100 2.881 1.44 1.44 0 000-2.881z" /></svg>
+                            </a>
+                          )}
+                          {m.socials.dribbble && (
+                            <a href={formatUrl(m.socials.dribbble)} target="_blank" rel="noopener noreferrer" className="social-icon" aria-label="Dribbble">
+                              <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M12 24C5.385 24 0 18.615 0 12S5.385 0 12 0s12 5.385 12 12-5.385 12-12 12zm10.12-10.358c-.35-.777-1.562-3.284-4.885-4.512.288-.696.56-1.397.814-2.093 3.1 1.15 4.3 2.89 4.38 3.01.03-.45.05-.9.05-1.36 0-5.396-4.172-9.81-9.49-10.224-.04.628-.27 3.424-1.87 6.643-1.636-2.283-3.376-4.143-3.483-4.256a10.273 10.273 0 00-6.19 2.5c.07.07 1.9 1.8 4.2 4.4-3.8 1.1-7.8.8-8 .8a10.2 10.2 0 001.9 5.8c.07 0 4.8-.3 9-.8.9 2.3 1.8 4.5 2.1 5.3-3.8 2.1-5 5.5-5.1 5.6a10.2 10.2 0 009.6 1.1c-.06-.5-.6-3.8-2.6-7.8 3.2 1.1 6.1.9 6.2.9a10.1 10.1 0 003.5-5.9z" /></svg>
+                            </a>
+                          )}
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         </section>
 

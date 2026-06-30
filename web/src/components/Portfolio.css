@@ -364,6 +364,12 @@ header.nav {
   margin: 0 auto
 }
 
+.pf-project-link {
+  display: contents;
+  text-decoration: none;
+  color: inherit
+}
+
 .pf-project-card {
   position: relative;
   grid-column: auto;
@@ -372,7 +378,7 @@ header.nav {
   border: 1px solid var(--line);
   background: var(--panel);
   aspect-ratio: 4/3;
-  cursor: pointer;
+  cursor: default;
   opacity: 0;
   transform: translateY(24px) scale(.98);
   animation: cardin .55s cubic-bezier(.2, .7, .2, 1) forwards;
@@ -489,36 +495,6 @@ header.nav {
   backdrop-filter: blur(4px)
 }
 
-.pf-project-card .go {
-  position: absolute;
-  top: 16px;
-  right: 16px;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  display: grid;
-  place-items: center;
-  background: rgba(8, 16, 32, .55);
-  border: 1px solid var(--line-2);
-  backdrop-filter: blur(6px);
-  opacity: 0;
-  transform: translateY(-6px) rotate(-8deg);
-  transition: .3s;
-  z-index: 2
-}
-
-.pf-project-card:hover .go {
-  opacity: 1;
-  transform: none
-}
-
-.pf-project-card .go svg {
-  width: 18px;
-  height: 18px;
-  fill: none;
-  stroke: #fff;
-  stroke-width: 2.2
-}
 
 .pf-project-card .yr {
   position: absolute;

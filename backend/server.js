@@ -7,6 +7,7 @@ const path = require('path');
 // Import routes
 const authRoutes = require('./routes/auth');
 const projectRoutes = require('./routes/projects');
+const teammateRoutes = require('./routes/teammates');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -67,6 +68,7 @@ mongoose
 // --- API Routes ---
 app.use('/api/auth', authRoutes);
 app.use('/api/projects', projectRoutes);
+app.use('/api/teammates', teammateRoutes);
 
 // --- Health check ---
 app.get('/api/health', (req, res) => {
