@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import HeroBackground from './HeroBackground';
 import './Home.css';
 
-const API = 'http://localhost:5000';
+const API = import.meta.env.VITE_API_URL || '';
 
 const FALLBACK_TEAMMATES = [
   {
@@ -223,7 +223,7 @@ export default function Home() {
       <header className={`nav ${isNavVisible ? '' : 'nav-hidden'}`}>
         <div className="wrap nav-in">
           <a className="brand" href="#top">
-            <img src="mark-white.png" alt="Ceynova logo" />
+            <img src="/mark-white.png" alt="Ceynova logo" />
             <span><b>CEYNOVA</b><span>Digital Solutions</span></span>
           </a>
           <nav className={`nav-links ${menuOpen ? 'open' : ''}`} id="navLinks">
@@ -276,7 +276,7 @@ export default function Home() {
                 <div className="bubble b3"><svg viewBox="0 0 24 24" fill="#fff"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z" /></svg></div>
                 <div className="device">
                   <div className="screen">
-                    <img src="mark-white.png" alt="Ceynova monogram" />
+                    <img src="/mark-white.png" alt="Ceynova monogram" />
                     <div className="dl">Digital Solutions</div>
                     <h3>We Build <b>Digital Solutions</b> for Your Success</h3>
                     <div className="sline"></div>
@@ -586,7 +586,7 @@ export default function Home() {
         <div className="wrap">
           <div className="foot-grid">
             <div className="foot-brand">
-              <img src="mark-white.png" alt="Ceynova Digital Solutions" />
+              <img src="/mark-white.png" alt="Ceynova Digital Solutions" />
               <p>Helping businesses grow through creative, modern, and reliable digital solutions. Innovative solutions, real results.</p>
             </div>
             <div className="foot-col">

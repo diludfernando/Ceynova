@@ -9,7 +9,7 @@ import {
 import { FaDatabase, FaMobileAlt, FaCode, FaCss3Alt, FaAws } from 'react-icons/fa';
 import './ProjectDetail.css';
 
-const API = 'http://localhost:5000';
+const API = import.meta.env.VITE_API_URL || '';
 
 const catLabels = {
   web: 'Web Platform',
